@@ -8,6 +8,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CallLog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -93,6 +94,53 @@ public class MainActivity extends Activity {
 
                 cr.delete(DatosProvider.CONTENT_URI,
                         Datos.COL_NOMBRE + " = 'Carlitos'", null );
+            }
+        });
+
+        btnCalls.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String[] projection = new String[] {
+                        CallLog.Calls.TYPE,
+                        CallLog.Calls.NUMBER };
+
+                Uri llamadasUri =  CallLog.Calls.CONTENT_URI;
+
+                ContentResolver cr = getContentResolver();
+
+                Cursor cur = cr.query(llamadasUri,
+                        projection, //Columnas a devolver
+                        null,       //Condición de la query
+                        null,       //Argumentos variables de la query
+                        null);      //Orden de los resultados
+
+                if (cur.moveToFirst())
+                {
+                    int tipo;
+                    String tipoLlamada = "";
+                    String telefono;
+
+                    int colTipo = cur.getColumnIndex(CallLog.Calls.TYPE);
+                    int colTelefono = cur.getColumnIndex(CallLog.Calls.NUMBER);
+
+                    txtResults.setText("");
+
+                    do
+                    {
+                        tipo = cur.getInt(colTipo);
+                        telefono = cur.getString(colTelefono);
+
+                        if(tipo == CallLog.Calls.INCOMING_TYPE)
+                            tipoLlamada = "ENTRADA";
+                        else if(tipo == CallLog.Calls.OUTGOING_TYPE)
+                            tipoLlamada = "SALIDA";
+                        else if(tipo == CallLog.Calls.MISSED_TYPE)
+                            tipoLlamada = "PERDIDA";
+
+                        txtResults.append(tipoLlamada + " - " + telefono + "\n");
+
+                    } while (cur.moveToNext());
+                }
             }
         });
 
